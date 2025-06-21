@@ -10,13 +10,11 @@ def recorrer_nodos(nodo, jerarquia, resultados, parent_path, btdb, full_path=Non
         return
 
     full_path = full_path or []
-    nombre_visible = next((nodo.attrib.get(attr) for attr in (
-        "ODBName", "Name", "aliasName", "ElementName", "Path") if nodo.attrib.get(attr)), None)
+    nombre_visible = next((nodo.attrib.get(attr) for attr in ("ODBName", "Name", "aliasName", "ElementName", "Path") if nodo.attrib.get(attr)), None)
 
     if nombre_visible in INVALID_ELEMENTS:
         for hijo in nodo:
-            recorrer_nodos(hijo, jerarquia.copy(), resultados,
-                           parent_path, btdb, full_path.copy())
+            recorrer_nodos(hijo, jerarquia.copy(), resultados, parent_path, btdb, full_path.copy())
         return
 
     if nombre_visible:
@@ -28,15 +26,15 @@ def recorrer_nodos(nodo, jerarquia, resultados, parent_path, btdb, full_path=Non
 
     if len(nodo):
         for hijo in nodo:
-            recorrer_nodos(hijo, ruta_actual, resultados,
-                           parent_path, btdb, full_path)
+            recorrer_nodos(hijo, ruta_actual, resultados, parent_path, btdb, full_path)
     else:
         fila = extraer_datos_fila(nodo, jerarquia, btdb)
         fila["PointType"] = TERMINAL_TAG_MAP.get(tag, "")
-        fila["Element"] = fila.get(
-            "Discrete_Name", fila.get("Analog_Name", ""))
+        fila["Element"] = fila.get("Discrete_Name", fila.get("Analog_Name", ""))
         fila["FullPath"] = "/".join(full_path)
-        fila["JERARQUIA"] = f"{fila.get('B1_tag')}-{fila.get('B1_name')}-{fila.get('B1')}:{fila.get('B2_tag')}-{fila.get('B2_name')}-{fila.get('B2')}:{fila.get('B3_tag')}-{fila.get('B3_name')}-{fila.get('B3')}"
+        fila["JERARQUIA"] = (
+            f"{fila.get('B1_tag')}-{fila.get('B1_name')}-{fila.get('B1')}:{fila.get('B2_tag')}-{fila.get('B2_name')}-{fila.get('B2')}:{fila.get('B3_tag')}-{fila.get('B3_name')}-{fila.get('B3')}"
+        )
         resultados.append(fila)
 
 
@@ -51,9 +49,7 @@ def extraer_datos_fila(nodo, jerarquia, dtdb):
                 match = buscar_por_blocktype(blocktype, dtdb)
                 if match:
                     level = match[0].get("group")
-                    niveles.setdefault(level, {
-                        "BlockType": blocktype, "Tag": tag, "Name": attrs.get("Name")
-                    })
+                    niveles.setdefault(level, {"BlockType": blocktype, "Tag": tag, "Name": attrs.get("Name")})
             for k, v in attrs.items():
                 if k in VALID_ATTRS:
                     key = k if k not in fila else f"{tag}_{k}"
@@ -78,8 +74,7 @@ def parse_imm_xml(path, index_blocktype):
 
     for parent in root.findall(".//Parent"):
         jerarquia = [{"Parent": {"Path": parent.attrib.get("Path", "")}}]
-        recorrer_nodos(parent, jerarquia, resultados,
-                       parent.attrib.get("Path", ""), index_blocktype)
+        recorrer_nodos(parent, jerarquia, resultados, parent.attrib.get("Path", ""), index_blocktype)
     return resultados
 
 
