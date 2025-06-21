@@ -1,41 +1,114 @@
-import xml.etree.ElementTree as ET
 import os
+import xml.etree.ElementTree as ET
 from config import VALID_TAGS, VALID_ATTRS, INVALID_TAGS, INVALID_ELEMENTS, TERMINAL_TAG_MAP
 from helpers import buscar_por_blocktype
 
 
-def recorrer_nodos(nodo, jerarquia, resultados, parent_path, btdb, full_path=None):
-    tag = nodo.tag
-    if tag in INVALID_TAGS:
-        return
+class XMLParser:
+    def __init__(self, index_blocktype=None):
+        self.btdb = index_blocktype
+        self.ifs_data = {}
+        self.imm_data = []
 
-    full_path = full_path or []
-    nombre_visible = next((nodo.attrib.get(attr) for attr in ("ODBName", "Name", "aliasName", "ElementName", "Path") if nodo.attrib.get(attr)), None)
+    def parse_ifs(self, path):
+        tree = ET.parse(path)
+        root = tree.getroot()
+        self.ifs_data = {
+            point.find("Link_IfsPointLinksToInfo").attrib.get("PathB", ""): {
+                "ConAddrDecimal": point.attrib.get("ConAddrDecimal"),
+                "MonAddrDecimal": point.attrib.get("MonAddrDecimal"),
+                "ConType": point.attrib.get("ConType"),
+                "MonType": point.attrib.get("MonType"),
+                "Name": point.attrib.get("Name"),
+            }
+            for point in root.findall(".//IfsPoint")
+            if point.find("Link_IfsPointLinksToInfo") is not None
+        }
+        return self.ifs_data
 
-    if nombre_visible in INVALID_ELEMENTS:
-        for hijo in nodo:
-            recorrer_nodos(hijo, jerarquia.copy(), resultados, parent_path, btdb, full_path.copy())
-        return
+    def parse_imm(self, path, incluir_tags=None, excluir_tags=None, verbose=True):
+        tree = ET.parse(path)
+        root = tree.getroot()
+        self.imm_data = []
 
-    if nombre_visible:
-        full_path = full_path.copy()
-        full_path.append(nombre_visible.strip())
+        for parent in root.findall(".//Parent"):
+            jerarquia = [{"Parent": {"Path": parent.attrib.get("Path", "")}}]
+            walker = XMLWalker(btdb=self.btdb, incluir_tags=incluir_tags, excluir_tags=excluir_tags, verbose=verbose)
+            walker.recorrer(parent, jerarquia, {"name": [], "tag": []})
+            self.imm_data.extend(walker.resultados)
 
-    ruta_actual = jerarquia.copy()
-    ruta_actual.append({tag: dict(nodo.attrib)})
+        return self.imm_data
 
-    if len(nodo):
-        for hijo in nodo:
-            recorrer_nodos(hijo, ruta_actual, resultados, parent_path, btdb, full_path)
-    else:
-        fila = extraer_datos_fila(nodo, jerarquia, btdb)
-        fila["PointType"] = TERMINAL_TAG_MAP.get(tag, "")
-        fila["Element"] = fila.get("Discrete_Name", fila.get("Analog_Name", ""))
-        fila["FullPath"] = "/".join(full_path)
-        fila["JERARQUIA"] = (
-            f"{fila.get('B1_tag')}-{fila.get('B1_name')}-{fila.get('B1')}:{fila.get('B2_tag')}-{fila.get('B2_name')}-{fila.get('B2')}:{fila.get('B3_tag')}-{fila.get('B3_name')}-{fila.get('B3')}"
-        )
-        resultados.append(fila)
+
+class XMLWalker:
+    def __init__(self, btdb, incluir_tags=None, excluir_tags=None, verbose=False):
+        self.btdb = btdb
+        self.resultados = []
+        self.incluir_tags = incluir_tags or []
+        self.excluir_tags = excluir_tags or []
+        self.verbose = verbose
+
+    def log(self, mensaje):
+        if self.verbose:
+            print(f"[XMLWalker] {mensaje}")
+
+    def validar_nodo(self, nodo):
+        obligatorio = ("ODBName", "Name", "aliasName", "ElementName", "Path")
+        return any(nodo.attrib.get(attr) for attr in obligatorio)
+
+    def recorrer(self, nodo, jerarquia=None, paths=None):
+        try:
+            tag = nodo.tag
+
+            if tag in INVALID_TAGS:
+                self.log(f"🚫 Etiqueta inválida: {tag}")
+                return
+
+            if self.excluir_tags and tag in self.excluir_tags:
+                self.log(f"⛔ Excluido por filtro: {tag}")
+                return
+
+            if self.incluir_tags and tag not in self.incluir_tags:
+                self.log(f"🔍 No incluido por filtro: {tag}")
+                return
+
+            if not self.validar_nodo(nodo):
+                self.log(f"⚠️ Nodo sin atributos requeridos: {tag}")
+                return
+
+            jerarquia = jerarquia or []
+            paths = paths or {"name": [], "tag": []}
+
+            nombre_visible = next((nodo.attrib.get(attr) for attr in ("ODBName", "Name", "aliasName", "ElementName", "Path") if nodo.attrib.get(attr)), None)
+
+            if nombre_visible in INVALID_ELEMENTS:
+                for hijo in nodo:
+                    self.recorrer(hijo, jerarquia[:], paths.copy())
+                return
+
+            if nombre_visible:
+                paths = {"name": paths["name"] + [nombre_visible.strip()], "tag": paths["tag"] + [tag]}
+
+            nueva_jerarquia = jerarquia[:] + [{tag: dict(nodo.attrib)}]
+
+            if len(nodo):  # Tiene hijos
+                for hijo in nodo:
+                    self.recorrer(hijo, nueva_jerarquia, paths)
+            else:
+                fila = extraer_datos_fila(nodo, nueva_jerarquia, self.btdb)
+                fila["PointType"] = TERMINAL_TAG_MAP.get(tag, "")
+                fila["Element"] = fila.get("Discrete_Name", fila.get("Analog_Name", ""))
+                fila["FullPath"] = "/".join(paths["name"])
+                fila["JERARQUIA"] = (
+                    f"{fila.get('B1_tag')}-{fila.get('B1_name')}-{fila.get('B1')}:"
+                    f"{fila.get('B2_tag')}-{fila.get('B2_name')}-{fila.get('B2')}:"
+                    f"{fila.get('B3_tag')}-{fila.get('B3_name')}-{fila.get('B3')}"
+                )
+                self.resultados.append(fila)
+                self.log(f"✔️ Nodo final procesado: {fila['FullPath']}")
+
+        except Exception as e:
+            self.log(f"❌ Error procesando nodo <{nodo.tag}>: {e}")
 
 
 def extraer_datos_fila(nodo, jerarquia, dtdb):
@@ -65,30 +138,3 @@ def extraer_datos_fila(nodo, jerarquia, dtdb):
         fila[f"{level.upper()}_name"] = niveles[level]["Name"]
 
     return fila
-
-
-def parse_imm_xml(path, index_blocktype):
-    tree = ET.parse(path)
-    root = tree.getroot()
-    resultados = []
-
-    for parent in root.findall(".//Parent"):
-        jerarquia = [{"Parent": {"Path": parent.attrib.get("Path", "")}}]
-        recorrer_nodos(parent, jerarquia, resultados, parent.attrib.get("Path", ""), index_blocktype)
-    return resultados
-
-
-def parse_ifs_xml(path):
-    tree = ET.parse(path)
-    root = tree.getroot()
-    return {
-        point.find("Link_IfsPointLinksToInfo").attrib.get("PathB", ""): {
-            "ConAddrDecimal": point.attrib.get("ConAddrDecimal"),
-            "MonAddrDecimal": point.attrib.get("MonAddrDecimal"),
-            "ConType": point.attrib.get("ConType"),
-            "MonType": point.attrib.get("MonType"),
-            "Name": point.attrib.get("Name"),
-        }
-        for point in root.findall(".//IfsPoint")
-        if point.find("Link_IfsPointLinksToInfo") is not None
-    }

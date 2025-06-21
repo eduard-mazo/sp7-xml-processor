@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from config import *
-from parser import parse_imm_xml, parse_ifs_xml
+from parser import XMLParser
 from helpers import cargar_base_datos_por_blocktype, safe_update_original, medir_tiempo
 
 
@@ -14,8 +14,10 @@ def construir_excel_desde_xml():
     print(f"📥 Procesando:\n - IMM: {imm_path.replace(os.sep, '/')}\n - IFS: {ifs_path.replace(os.sep, '/')}")
 
     index_blocktype = cargar_base_datos_por_blocktype(os.path.join(JSON_DIR, BLOCKTYPE_JSON))
-    imm_data = parse_imm_xml(imm_path, index_blocktype)
-    ifs_data = parse_ifs_xml(ifs_path)
+    parser = XMLParser(index_blocktype)
+
+    imm_data = parser.parse_imm(imm_path)
+    ifs_data = parser.parse_ifs(ifs_path)
 
     for row in imm_data:
         incoming = ifs_data.get(row.get("FullPath"), {"Name": "NO IFS-DATA", "ConAddrDecimal": None, "MonAddrDecimal": None, "ConType": None, "MonType": None})
