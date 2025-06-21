@@ -15,7 +15,7 @@ Este proyecto permite **procesar archivos XML jerárquicos SCADA** y generar aut
 ---
 
 ## 🗂️ Estructura del Proyecto
-
+```
 .
 ├── config.py # Configuración general y constantes
 ├── excel_builder.py # Construcción del Excel final
@@ -27,7 +27,7 @@ Este proyecto permite **procesar archivos XML jerárquicos SCADA** y generar aut
 ├── XML/ # Archivos IMM.xml e IFS_COMPLETE.xml
 ├── JSON/ # Archivos JSON de jerarquía y tipos de bloque
 └── XLSX/ # Salida generada en Excel
-
+```
 ---
 
 ## 🛠️ Requisitos
