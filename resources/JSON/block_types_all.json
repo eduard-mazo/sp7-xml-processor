@@ -1,0 +1,548 @@
+{
+  "b3": [
+    {
+      "Name": "B3Gener2",
+      "BlockType": "160"
+    },
+    {
+      "Name": "B3Gener1",
+      "BlockType": "150"
+    },
+    {
+      "Name": "swCoupl",
+      "BlockType": "148"
+    },
+    {
+      "Name": "B3 ELCOM",
+      "BlockType": "140"
+    },
+    {
+      "Name": "cmpBbSc4",
+      "BlockType": "134"
+    },
+    {
+      "Name": "cmpBbCpt",
+      "BlockType": "133"
+    },
+    {
+      "Name": "EndStBlt",
+      "BlockType": "129"
+    },
+    {
+      "Name": "cmpBbvir",
+      "BlockType": "98"
+    },
+    {
+      "Name": "noNeElgr",
+      "BlockType": "82"
+    },
+    {
+      "Name": "B3 ICCP",
+      "BlockType": "72"
+    },
+    {
+      "Name": "cmpTrInL",
+      "BlockType": "70"
+    },
+    {
+      "Name": "cmpLiInL",
+      "BlockType": "69"
+    },
+    {
+      "Name": "swShunt",
+      "BlockType": "68"
+    },
+    {
+      "Name": "B3 AD",
+      "BlockType": "67"
+    },
+    {
+      "Name": "swTrafo2",
+      "BlockType": "62"
+    },
+    {
+      "Name": "swTrafo1",
+      "BlockType": "61"
+    },
+    {
+      "Name": "swGen",
+      "BlockType": "60"
+    },
+    {
+      "Name": "cmpGen",
+      "BlockType": "59"
+    },
+    {
+      "Name": "cmpBbSc3",
+      "BlockType": "58"
+    },
+    {
+      "Name": "cmpBbSc2",
+      "BlockType": "57"
+    },
+    {
+      "Name": "cmpBbSc1",
+      "BlockType": "56"
+    },
+    {
+      "Name": "swGround",
+      "BlockType": "52"
+    },
+    {
+      "Name": "swSerCpl",
+      "BlockType": "51"
+    },
+    {
+      "Name": "swLine",
+      "BlockType": "50"
+    },
+    {
+      "Name": "swLoad",
+      "BlockType": "49"
+    },
+    {
+      "Name": "swTrafo",
+      "BlockType": "48"
+    },
+    {
+      "Name": "cmpBatt",
+      "BlockType": "45"
+    },
+    {
+      "Name": "cmpPetC",
+      "BlockType": "44"
+    },
+    {
+      "Name": "cmpABbSc",
+      "BlockType": "43"
+    },
+    {
+      "Name": "cmpCoupl",
+      "BlockType": "42"
+    },
+    {
+      "Name": "cmpShunt",
+      "BlockType": "41"
+    },
+    {
+      "Name": "cmpLoad",
+      "BlockType": "40"
+    },
+    {
+      "Name": "cmpTrafo",
+      "BlockType": "39"
+    },
+    {
+      "Name": "cmpEqInj",
+      "BlockType": "38"
+    },
+    {
+      "Name": "cmpInj",
+      "BlockType": "37"
+    },
+    {
+      "Name": "cmpEquBr",
+      "BlockType": "36"
+    },
+    {
+      "Name": "cmpLine",
+      "BlockType": "35"
+    },
+    {
+      "Name": "dmsLoad",
+      "BlockType": "18"
+    },
+    {
+      "Name": "swBayGnr",
+      "BlockType": "17"
+    },
+    {
+      "Name": "cmpDCLin",
+      "BlockType": "16"
+    },
+    {
+      "Name": "cmpDCInj",
+      "BlockType": "15"
+    },
+    {
+      "Name": "cmpPhSh",
+      "BlockType": "14"
+    },
+    {
+      "Name": "cmpSerD",
+      "BlockType": "13"
+    },
+    {
+      "Name": "cmpShntF",
+      "BlockType": "12"
+    },
+    {
+      "Name": "cmpShntC",
+      "BlockType": "11"
+    },
+    {
+      "Name": "cmpShntR",
+      "BlockType": "10"
+    },
+    {
+      "Name": "B3 Comp",
+      "BlockType": "8"
+    },
+    {
+      "Name": "B3 RTU",
+      "BlockType": "5"
+    },
+    {
+      "Name": "B3 Dev",
+      "BlockType": "4"
+    }
+  ],
+  "b2": [
+    {
+      "Name": "GNC  250",
+      "BlockType": "208"
+    },
+    {
+      "Name": "GNC   60",
+      "BlockType": "207"
+    },
+    {
+      "Name": "GNC    7",
+      "BlockType": "206"
+    },
+    {
+      "Name": "GNC 0.14",
+      "BlockType": "205"
+    },
+    {
+      "Name": "CS  82.7",
+      "BlockType": "202"
+    },
+    {
+      "Name": "CS  20.7",
+      "BlockType": "201"
+    },
+    {
+      "Name": "CS     7",
+      "BlockType": "200"
+    },
+    {
+      "Name": "B2St440V",
+      "BlockType": "169"
+    },
+    {
+      "Name": "B2Sta 07",
+      "BlockType": "168"
+    },
+    {
+      "Name": "B2Sta  1",
+      "BlockType": "167"
+    },
+    {
+      "Name": "B2Sta  3",
+      "BlockType": "166"
+    },
+    {
+      "Name": "B2Lin 13",
+      "BlockType": "164"
+    },
+    {
+      "Name": "B2Lin 33",
+      "BlockType": "163"
+    },
+    {
+      "Name": "B2Lin 44",
+      "BlockType": "161"
+    },
+    {
+      "Name": "B2Gener2",
+      "BlockType": "159"
+    },
+    {
+      "Name": "B2Lin220",
+      "BlockType": "157"
+    },
+    {
+      "Name": "B2Lin  7",
+      "BlockType": "156"
+    },
+    {
+      "Name": "B2Lin110",
+      "BlockType": "155"
+    },
+    {
+      "Name": "B2Sta 44",
+      "BlockType": "154"
+    },
+    {
+      "Name": "B2Sta  6",
+      "BlockType": "153"
+    },
+    {
+      "Name": "B2Sta 13",
+      "BlockType": "152"
+    },
+    {
+      "Name": "B2Sta 33",
+      "BlockType": "151"
+    },
+    {
+      "Name": "B2Gener1",
+      "BlockType": "149"
+    },
+    {
+      "Name": "B2Sta110",
+      "BlockType": "145"
+    },
+    {
+      "Name": "B2Sta138",
+      "BlockType": "144"
+    },
+    {
+      "Name": "B2Sta220",
+      "BlockType": "143"
+    },
+    {
+      "Name": "B2Sta230",
+      "BlockType": "142"
+    },
+    {
+      "Name": "B2Lin500",
+      "BlockType": "137"
+    },
+    {
+      "Name": "B2Sta500",
+      "BlockType": "136"
+    },
+    {
+      "Name": "B2Sta 18",
+      "BlockType": "135"
+    },
+    {
+      "Name": "B2St115V",
+      "BlockType": "132"
+    },
+    {
+      "Name": "B2St125V",
+      "BlockType": "131"
+    },
+    {
+      "Name": "B2St220V",
+      "BlockType": "130"
+    },
+    {
+      "Name": "B2Inj 33",
+      "BlockType": "94"
+    },
+    {
+      "Name": "B2VoLv20",
+      "BlockType": "93"
+    },
+    {
+      "Name": "B2VoLv19",
+      "BlockType": "92"
+    },
+    {
+      "Name": "B2VoLv18",
+      "BlockType": "91"
+    },
+    {
+      "Name": "B2VoLv17",
+      "BlockType": "90"
+    },
+    {
+      "Name": "B2VoLv16",
+      "BlockType": "89"
+    },
+    {
+      "Name": "B2VoLv15",
+      "BlockType": "88"
+    },
+    {
+      "Name": "B2VoLv14",
+      "BlockType": "87"
+    },
+    {
+      "Name": "B2VoLv13",
+      "BlockType": "86"
+    },
+    {
+      "Name": "B2VoLv12",
+      "BlockType": "85"
+    },
+    {
+      "Name": "B2VoLv11",
+      "BlockType": "84"
+    },
+    {
+      "Name": "B2VoLv10",
+      "BlockType": "83"
+    },
+    {
+      "Name": "noVoLev",
+      "BlockType": "81"
+    },
+    {
+      "Name": "B2 ICCP",
+      "BlockType": "71"
+    },
+    {
+      "Name": "B2 AD",
+      "BlockType": "66"
+    },
+    {
+      "Name": "B2VoLev9",
+      "BlockType": "34"
+    },
+    {
+      "Name": "B2VoLev8",
+      "BlockType": "33"
+    },
+    {
+      "Name": "B2VoLev7",
+      "BlockType": "32"
+    },
+    {
+      "Name": "B2VoLev6",
+      "BlockType": "31"
+    },
+    {
+      "Name": "B2VoLev5",
+      "BlockType": "28"
+    },
+    {
+      "Name": "B2 Traf",
+      "BlockType": "27"
+    },
+    {
+      "Name": "B2VoLev4",
+      "BlockType": "25"
+    },
+    {
+      "Name": "B2VoLev3",
+      "BlockType": "24"
+    },
+    {
+      "Name": "B2VoLev2",
+      "BlockType": "22"
+    },
+    {
+      "Name": "B2VoLev1",
+      "BlockType": "21"
+    },
+    {
+      "Name": "B2 ELCOM",
+      "BlockType": "9"
+    },
+    {
+      "Name": "B2 Dev",
+      "BlockType": "7"
+    },
+    {
+      "Name": "B2 Level",
+      "BlockType": "6"
+    },
+    {
+      "Name": "B2 RTU",
+      "BlockType": "3"
+    },
+    {
+      "Name": "B2 Comp",
+      "BlockType": "2"
+    }
+  ],
+  "b1": [
+    {
+      "Name": "B1Gener2",
+      "BlockType": "158"
+    },
+    {
+      "Name": "B1Gener1",
+      "BlockType": "122"
+    },
+    {
+      "Name": "B1DMSCab",
+      "BlockType": "112"
+    },
+    {
+      "Name": "B1DMSDef",
+      "BlockType": "111"
+    },
+    {
+      "Name": "B1DMSLin",
+      "BlockType": "110"
+    },
+    {
+      "Name": "B1DMS9",
+      "BlockType": "109"
+    },
+    {
+      "Name": "B1DMS8",
+      "BlockType": "108"
+    },
+    {
+      "Name": "B1DMS7",
+      "BlockType": "107"
+    },
+    {
+      "Name": "B1DMS6",
+      "BlockType": "106"
+    },
+    {
+      "Name": "B1DMS5",
+      "BlockType": "105"
+    },
+    {
+      "Name": "B1DMS4",
+      "BlockType": "104"
+    },
+    {
+      "Name": "B1DMS3",
+      "BlockType": "103"
+    },
+    {
+      "Name": "B1DMS2",
+      "BlockType": "102"
+    },
+    {
+      "Name": "B1DMS1",
+      "BlockType": "101"
+    },
+    {
+      "Name": "B1Feeder",
+      "BlockType": "100"
+    },
+    {
+      "Name": "noStat",
+      "BlockType": "80"
+    },
+    {
+      "Name": "B1 AD",
+      "BlockType": "65"
+    },
+    {
+      "Name": "B1Ground",
+      "BlockType": "30"
+    },
+    {
+      "Name": "Station",
+      "BlockType": "29"
+    },
+    {
+      "Name": "B1 Traf",
+      "BlockType": "26"
+    },
+    {
+      "Name": "B1 Inj",
+      "BlockType": "23"
+    },
+    {
+      "Name": "B1 Line",
+      "BlockType": "20"
+    },
+    {
+      "Name": "B1 Syst",
+      "BlockType": "1"
+    }
+  ]
+}
