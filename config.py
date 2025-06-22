@@ -20,13 +20,6 @@ class AppConfig:
         # Carga dinámica del JSON
         self._load_config()
 
-        # Variables derivadas
-        self.imm_file_path = self.xml_dir / self.imm_filename
-        self.ifs_file_path = self.xml_dir / self.ifs_filename
-        self.output_filename = f"MUI_{self.negocio}_{self.timestamp}.xlsx"
-        self.hierarchy_json = self.json_dir / "hierarchy.json"
-        self.blocktype_json = self.json_dir / "block_types_all.json"
-
     def _load_config(self):
         if self.db:
             data = self.db.all()

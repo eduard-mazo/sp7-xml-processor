@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
 from config import config
+from types import ModuleType
 
 # Crear directorios si no existen
 for directory in [config.xml_dir, config.json_dir, config.output_dir]:
@@ -90,22 +91,25 @@ class XMLSelectorApp:
             messagebox.showerror("Fallo", "Hubo un error durante el procesamiento. Consulta la consola para más detalles.")
 
     def mostrar_constantes(self):
+
         self.constantes_text.delete("1.0", tk.END)
-        atributos = [
-            ("valid_tags", config.valid_tags),
-            ("invalid_tags", config.invalid_tags),
-            ("valid_attrs", config.valid_attrs),
-            ("invalid_elements", config.invalid_elements),
-            ("terminal_tag_map", config.terminal_tag_map),
-            ("columns_to_export", config.columns_to_export),
-            ("imm_filename", config.imm_filename),
-            ("ifs_filename", config.ifs_filename),
-        ]
-        for nombre, valor in atributos:
-            if isinstance(valor, dict) or isinstance(valor, set) or isinstance(valor, list):
-                self.constantes_text.insert(tk.END, f"{nombre}: {len(valor)} elementos\n")
+
+        # Obtener atributos públicos del config que no son métodos ni módulos
+        for attr in dir(config):
+            if attr.startswith("_") or callable(getattr(config, attr)) or isinstance(getattr(config, attr), ModuleType):
+                continue
+
+            valor = getattr(config, attr)
+            if isinstance(valor, (list, dict, set)):
+                self.constantes_text.insert(tk.END, f"{attr}: {len(valor)} elementos\n")
             else:
-                self.constantes_text.insert(tk.END, f"{nombre}: {valor}\n")
+                self.constantes_text.insert(tk.END, f"{attr}: {valor}\n")
+
+            # Actualiza paths visibles en campos IMM/IFS
+            if attr == "imm_file_path":
+                self.imm_path.set(str(valor))
+            elif attr == "ifs_file_path":
+                self.ifs_path.set(str(valor))
 
 
 if __name__ == "__main__":
