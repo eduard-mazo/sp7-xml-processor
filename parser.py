@@ -1,6 +1,6 @@
 import os
 import xml.etree.ElementTree as ET
-from config import VALID_TAGS, VALID_ATTRS, INVALID_TAGS, INVALID_ELEMENTS, TERMINAL_TAG_MAP
+from config import config
 from helpers import buscar_por_blocktype
 
 
@@ -26,7 +26,7 @@ class XMLParser:
         }
         return self.ifs_data
 
-    def parse_imm(self, path, incluir_tags=None, excluir_tags=None, verbose=True):
+    def parse_imm(self, path, incluir_tags=None, excluir_tags=None, verbose=False):
         tree = ET.parse(path)
         root = tree.getroot()
         self.imm_data = []
@@ -54,13 +54,20 @@ class XMLWalker:
 
     def validar_nodo(self, nodo):
         obligatorio = ("ODBName", "Name", "aliasName", "ElementName", "Path")
-        return any(nodo.attrib.get(attr) for attr in obligatorio)
+        for attr in obligatorio:
+            valor = nodo.attrib.get(attr)
+            if attr == "Path":
+                if valor is not None:  # Acepta incluso si es ""
+                    return True
+            elif valor and valor.strip():  # Solo acepta si no está vacío ni son espacios
+                return True
+        return False
 
     def recorrer(self, nodo, jerarquia=None, paths=None):
         try:
             tag = nodo.tag
 
-            if tag in INVALID_TAGS:
+            if tag in config.invalid_tags:
                 self.log(f"🚫 Etiqueta inválida: {tag}")
                 return
 
@@ -81,7 +88,7 @@ class XMLWalker:
 
             nombre_visible = next((nodo.attrib.get(attr) for attr in ("ODBName", "Name", "aliasName", "ElementName", "Path") if nodo.attrib.get(attr)), None)
 
-            if nombre_visible in INVALID_ELEMENTS:
+            if nombre_visible in config.invalid_elements:
                 for hijo in nodo:
                     self.recorrer(hijo, jerarquia[:], paths.copy())
                 return
@@ -96,7 +103,7 @@ class XMLWalker:
                     self.recorrer(hijo, nueva_jerarquia, paths)
             else:
                 fila = extraer_datos_fila(nodo, nueva_jerarquia, self.btdb)
-                fila["PointType"] = TERMINAL_TAG_MAP.get(tag, "")
+                fila["PointType"] = config.terminal_tag_map.get(tag, "")
                 fila["Element"] = fila.get("Discrete_Name", fila.get("Analog_Name", ""))
                 fila["FullPath"] = "/".join(paths["name"])
                 fila["JERARQUIA"] = (
@@ -124,12 +131,12 @@ def extraer_datos_fila(nodo, jerarquia, dtdb):
                     level = match[0].get("group")
                     niveles.setdefault(level, {"BlockType": blocktype, "Tag": tag, "Name": attrs.get("Name")})
             for k, v in attrs.items():
-                if k in VALID_ATTRS:
+                if k in config.valid_attrs:
                     key = k if k not in fila else f"{tag}_{k}"
                     fila[key] = v
 
     for k, v in nodo.attrib.items():
-        if k in VALID_ATTRS:
+        if k in config.valid_attrs:
             fila[k] = v
 
     for level in sorted(niveles):

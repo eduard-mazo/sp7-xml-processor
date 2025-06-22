@@ -1,32 +1,29 @@
 import os
 import pandas as pd
-from config import *
+from config import config
 from parser import XMLParser
 from helpers import cargar_base_datos_por_blocktype, safe_update_original, medir_tiempo
 
 
 @medir_tiempo
 def construir_excel_desde_xml():
-    imm_path = os.path.join(XML_DIR, IMM_FILENAME)
-    ifs_path = os.path.join(XML_DIR, IFS_FILENAME)
-    output_path = os.path.join(OUTPUT_DIR, OUTPUT_FILENAME)
 
-    print(f"📥 Procesando:\n - IMM: {imm_path.replace(os.sep, '/')}\n - IFS: {ifs_path.replace(os.sep, '/')}")
+    print(f"📥 Procesando:\n - IMM: {config.imm_file_path}\n - IFS: {config.ifs_file_path}")
 
-    index_blocktype = cargar_base_datos_por_blocktype(os.path.join(JSON_DIR, BLOCKTYPE_JSON))
+    index_blocktype = cargar_base_datos_por_blocktype(config.blocktype_json)
     parser = XMLParser(index_blocktype)
 
-    imm_data = parser.parse_imm(imm_path)
-    ifs_data = parser.parse_ifs(ifs_path)
+    imm_data = parser.parse_imm(config.imm_file_path)
+    ifs_data = parser.parse_ifs(config.ifs_file_path)
 
     for row in imm_data:
         incoming = ifs_data.get(row.get("FullPath"), {"Name": "NO IFS-DATA", "ConAddrDecimal": None, "MonAddrDecimal": None, "ConType": None, "MonType": None})
-        safe_update_original(row, incoming) if USE_SAFE_UPDATE else row.update(incoming)
+        safe_update_original(row, incoming) if config.use_safe_update else row.update(incoming)
 
     df = pd.DataFrame(imm_data)
-    columnas_filtradas = df.columns if EXPORT_ALL else [col for col in COLUMNS_TO_EXPORT if col in df.columns]
+    columnas_filtradas = df.columns if config.export_all else [col for col in config.columns_to_export if col in df.columns]
     df = df[columnas_filtradas]
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    df.to_excel(output_path, index=False)
-    print(f"✅ Excel generado en: {output_path.replace(os.sep, '/')}")
+    os.makedirs(config.output_dir, exist_ok=True)
+    df.to_excel(config.output_dir / config.output_filename, index=False)
+    print(f"✅ Excel generado en: {config.output_dir / config.output_filename}")

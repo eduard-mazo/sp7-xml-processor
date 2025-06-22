@@ -1,106 +1,93 @@
+# config.py
+from pathlib import Path
 from datetime import datetime
+from tinydb import TinyDB
 
-# === Paths & Config ===
-NEGOCIO_NAME = "GAS"
-TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+CONFIG_DB_PATH = Path("config_db.json")
 
-XML_DIR = "resources/XML"
-JSON_DIR = "resources/JSON"
-OUTPUT_DIR = "resources/XLSX"
-IMM_FILENAME = f"IMM_{NEGOCIO_NAME}.xml"
-IFS_FILENAME = "IFS_COMPLETE.xml"
-HIERARCHY_JSON = "hierarchy.json"
-BLOCKTYPE_JSON = "block_types_all.json"
-OUTPUT_FILENAME = f"MUI_{NEGOCIO_NAME}_{TIMESTAMP}.xlsx"
 
-USE_SAFE_UPDATE = True
-EXPORT_ALL = False
+class AppConfig:
+    def __init__(self):
+        # Rutas base (no cambian)
+        self.xml_dir = Path("resources/XML")
+        self.json_dir = Path("resources/JSON")
+        self.output_dir = Path("resources/XLSX")
 
-# === Columns to Export ===
-COLUMNS_TO_EXPORT = [
-    "AreaOfResponsibilityId",
-    "FullPath",
-    "JERARQUIA",
-    "Name_ifs",
-    "PointType",
-    "ElementName",
-    "Element",
-    "ElementText",
-    "ElementType",
-    "B1_tag",
-    "B1_name",
-    "B1",
-    "B2_tag",
-    "B2_name",
-    "B2",
-    "B3_tag",
-    "B3_name",
-    "B3",
-    "ConAddrDecimal",
-    "MonAddrDecimal",
-    "ConType",
-    "MonType",
-]
+        # Base de datos
+        self.db = TinyDB(CONFIG_DB_PATH)
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-# === Tag and Attribute Rules ===
-VALID_TAGS = {
-    "GASstation",
-    "GeographicalRegion",
-    "PressureLevel",
-    "GasTank",
-    "Terminal",
-    "Substation",
-    "GasJunction",
-    "ConnectivityNode",
-    "GasValve",
-    "GasCompressor",
-    "GasEvacValve",
-    "B1Block",
-    "GasPipe",
-    "BasePressure",
-    "B2Block",
-    "Bay",
-    "Discrete",
-    "DiscreteValue",
-    "Analog",
-    "AnalogValue",
-    "B3Block",
-    "Parent",
-    "SubGeographicalRegion",
-    "Link_ConductingEquipmentHasTPStatusMeasurement",
-    "Breaker",
-    "ControlCenterDataAccessRight",
-    "VoltageLevel",
-    "LineVoltageLevel",
-    "PowerTransformer",
-    "AnalogInfo",
-    "AnalogLimit",
-    "DiscreteInfo",
-}
+        # Carga dinámica del JSON
+        self._load_config()
 
-VALID_ATTRS = {
-    "ElementName",
-    "SignInvSE",
-    "NoElType",
-    "ElementText",
-    "Name",
-    "B2Number",
-    "AreaOfResponsibilityId",
-    "UnitOfMeasure",
-    "ElementNameString",
-    "BlockType",
-    "B3Number",
-    "MeasurementType",
-    "ElementType",
-}
+        # Variables derivadas
+        self.imm_file_path = self.xml_dir / self.imm_filename
+        self.ifs_file_path = self.xml_dir / self.ifs_filename
+        self.output_filename = f"MUI_{self.negocio}_{self.timestamp}.xlsx"
+        self.hierarchy_json = self.json_dir / "hierarchy.json"
+        self.blocktype_json = self.json_dir / "block_types_all.json"
 
-INVALID_TAGS = {"Terminal"}
-INVALID_ELEMENTS = {"Bl Spec", "Topo Sta", "MvNomina", "MvLim01L", "MvLim01U", "MvLim02L", "MvLim02U"}
+    def _load_config(self):
+        if self.db:
+            data = self.db.all()
+            if data:
+                config_dict = data[0]
+                for key, value in config_dict.items():
+                    # Convert sets back from lists
+                    if key in {"valid_tags", "invalid_tags", "invalid_elements", "valid_attrs"} and isinstance(value, list):
+                        value = set(value)
+                    setattr(self, key, value)
+            else:
+                self._set_default_config()
+                self._persist_config()
+        else:
+            self._set_default_config()
 
-TERMINAL_TAG_MAP = {
-    "DiscreteValue": "Status",
-    "AnalogValue": "MvMoment",
-    "DiscreteInfo": "AlStat",
-    "AnalogInfo": "MvNomina",
-    "AnalogLimit": "MvLim01L",  # Nota: solo una clave será efectiva
-}
+    def _set_default_config(self):
+        # Valores por defecto mínimos
+        self.negocio = "GAS"
+        self.imm_filename = "IMM_GAS.xml"
+        self.ifs_filename = "IFS_COMPLETE.xml"
+        self.use_safe_update = True
+        self.export_all = False
+
+        self.columns_to_export = []
+
+        self.valid_tags = {}
+
+        self.invalid_tags = {}
+
+        self.invalid_elements = {}
+
+        self.valid_attrs = {}
+
+        self.terminal_tag_map = {}
+
+    def _persist_config(self):
+        self.db.truncate()
+
+        # Prepara datos serializables (convierte sets a listas)
+        config_data = {}
+        for key, value in self.__dict__.items():
+            if key in {"db", "xml_dir", "json_dir", "output_dir"}:
+                continue
+            if isinstance(value, Path):
+                config_data[key] = str(value)
+            elif isinstance(value, set):
+                config_data[key] = list(value)
+            else:
+                config_data[key] = value
+
+        self.db.insert(config_data)
+
+    def update(self, negocio, imm_path, ifs_path):
+        self.negocio = negocio
+        self.imm_filename = Path(imm_path).name
+        self.ifs_filename = Path(ifs_path).name
+        self.imm_file_path = Path(imm_path)
+        self.ifs_file_path = Path(ifs_path)
+        self.output_filename = f"MUI_{negocio}_{self.timestamp}.xlsx"
+        self._persist_config()
+
+
+config = AppConfig()
