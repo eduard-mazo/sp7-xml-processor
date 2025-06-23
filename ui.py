@@ -1,118 +1,135 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+import customtkinter as ctk
+from tkinter import filedialog
 from pathlib import Path
+import json
 from config import config
-from types import ModuleType
+from main import ejecutar_proceso
+from CTkMessagebox import CTkMessagebox
+import tkinter as tk
+from tinydb import TinyDB
+from ui_logger import ui_logger
 
-# Crear directorios si no existen
-for directory in [config.xml_dir, config.json_dir, config.output_dir]:
-    directory.mkdir(parents=True, exist_ok=True)
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 
-def actualizar_config(imm_path, ifs_path, negocio):
-    config.update(negocio, imm_path, ifs_path)
+class App(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Procesador XML SP7")
+        self.geometry("1000x650")
 
+        self.imm_path = ctk.StringVar(value=str(config.imm_file_path))
+        self.ifs_path = ctk.StringVar(value=str(config.ifs_file_path))
 
-class XMLSelectorApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("SP7 Selector de Archivos")
-        self.root.geometry("750x400")
+        self.notebook = ctk.CTkTabview(self)
+        self.notebook.pack(expand=True, fill="both", padx=10, pady=10)
 
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill="both", expand=True)
+        self._crear_tab_selector()
+        self._crear_tab_constantes()
 
-        # Pestaña de selección
-        self.frame_selector = ttk.Frame(self.notebook)
-        self.notebook.add(self.frame_selector, text="Seleccionar Archivos")
+        ui_logger.set_callback(self.log)  # Redirige los logs a esta GUI
 
-        self.imm_path = tk.StringVar()
-        self.ifs_path = tk.StringVar()
-        self.negocio_name = tk.StringVar()
+    def _crear_tab_selector(self):
+        tab = self.notebook.add("Selector de Archivos")
 
-        ttk.Label(self.frame_selector, text="Archivo IMM:").pack(pady=5)
-        ttk.Entry(self.frame_selector, textvariable=self.imm_path, width=90).pack()
-        ttk.Button(self.frame_selector, text="Seleccionar IMM", command=self.select_imm).pack(pady=5)
+        frame_superior = ctk.CTkFrame(tab)
+        frame_superior.pack(padx=10, pady=10, fill="x")
 
-        ttk.Label(self.frame_selector, text="Archivo IFS:").pack(pady=5)
-        ttk.Entry(self.frame_selector, textvariable=self.ifs_path, width=90).pack()
-        ttk.Button(self.frame_selector, text="Seleccionar IFS", command=self.select_ifs).pack(pady=5)
+        # IMM
+        ctk.CTkLabel(frame_superior, text="📁").grid(row=0, column=0, padx=5)
+        ctk.CTkLabel(frame_superior, text="Ruta IMM:").grid(row=0, column=1, sticky="w", padx=5, pady=5)
+        ctk.CTkEntry(frame_superior, textvariable=self.imm_path, width=600).grid(row=0, column=2, padx=5, pady=5)
+        ctk.CTkButton(frame_superior, text="...", width=30, command=self.select_imm).grid(row=0, column=3, padx=5)
 
-        ttk.Button(self.frame_selector, text="Confirmar y continuar", command=self.confirm_selection).pack(pady=20)
+        # IFS
+        ctk.CTkLabel(frame_superior, text="📁").grid(row=1, column=0, padx=5)
+        ctk.CTkLabel(frame_superior, text="Ruta IFS:").grid(row=1, column=1, sticky="w", padx=5, pady=5)
+        ctk.CTkEntry(frame_superior, textvariable=self.ifs_path, width=600).grid(row=1, column=2, padx=5, pady=5)
+        ctk.CTkButton(frame_superior, text="...", width=30, command=self.select_ifs).grid(row=1, column=3, padx=5)
 
-        # Pestaña de constantes
-        self.frame_constantes = ttk.Frame(self.notebook)
-        self.notebook.add(self.frame_constantes, text="Constantes")
+        # Procesar
+        ctk.CTkButton(tab, text="Ejecutar Procesamiento", command=self.run_main, fg_color="green").pack(pady=10)
 
-        self.constantes_text = tk.Text(self.frame_constantes, wrap="word")
-        self.constantes_text.pack(fill="both", expand=True)
+        # Log de eventos enriquecido
+        log_frame = ctk.CTkFrame(tab)
+        log_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.log_text = tk.Text(log_frame, height=10, bg="#1a1a1a", fg="white", insertbackground="white")
+        self.log_text.pack(fill="both", expand=True)
+        self._configurar_tags_log()
+
+    def _configurar_tags_log(self):
+        self.log_text.tag_config("normal", foreground="white")
+        self.log_text.tag_config("warning", foreground="yellow")
+        self.log_text.tag_config("danger", foreground="red")
+
+    def _crear_tab_constantes(self):
+        tab = self.notebook.add("Constantes")
+
+        self.btn_guardar = ctk.CTkButton(tab, text="Guardar Cambios (JSON crudo)", command=self.guardar_constantes)
+        self.btn_guardar.pack(pady=10)
+
+        self.constantes_viewer = ctk.CTkTextbox(tab)
+        self.constantes_viewer.pack(expand=True, fill="both", padx=10, pady=10)
+
         self.mostrar_constantes()
 
+    def log(self, mensaje, nivel="normal"):
+        try:
+            if "\n" not in mensaje:
+                mensaje += "\n"
+            self.log_text.insert("end", mensaje, nivel)
+            self.log_text.see("end")
+        except Exception as e:
+            print(f"Log error: {e}")
+
     def select_imm(self):
-        path = filedialog.askopenfilename(filetypes=[("XML files", "*.xml")], title="Selecciona el archivo IMM")
+        path = filedialog.askopenfilename(filetypes=[("XML files", "*.xml")])
         if path:
             self.imm_path.set(path)
-            self.extract_negocio_name(path)
+            self.log(f"IMM seleccionado: {path}", "normal")
 
     def select_ifs(self):
-        path = filedialog.askopenfilename(filetypes=[("XML files", "*.xml")], title="Selecciona el archivo IFS")
+        path = filedialog.askopenfilename(filetypes=[("XML files", "*.xml")])
         if path:
             self.ifs_path.set(path)
+            self.log(f"IFS seleccionado: {path}", "normal")
 
-    def extract_negocio_name(self, filepath):
-        filename = Path(filepath).name
-        if filename.startswith("IMM_") and filename.endswith(".xml"):
-            self.negocio_name.set(filename[4:-4])
-
-    def confirm_selection(self):
-        imm = self.imm_path.get()
-        ifs = self.ifs_path.get()
-        negocio = self.negocio_name.get()
-
-        if not imm or not ifs:
-            messagebox.showerror("Error", "Debes seleccionar ambos archivos.")
-            return
-
-        actualizar_config(imm, ifs, negocio)
-
-        print("Archivo IMM:", imm)
-        print("Archivo IFS:", ifs)
-        print("Negocio:", negocio)
-
-        from main import ejecutar_proceso
-
-        messagebox.showinfo("Listo", "Archivos seleccionados correctamente. Ejecutando procesamiento...")
-
-        resultado = ejecutar_proceso()
-
-        if resultado:
-            messagebox.showinfo("Éxito", "Procesamiento completado correctamente.")
-        else:
-            messagebox.showerror("Fallo", "Hubo un error durante el procesamiento. Consulta la consola para más detalles.")
+    def run_main(self):
+        try:
+            config.update(config.negocio, self.imm_path.get(), self.ifs_path.get())
+            self.log("Procesamiento iniciado...", "normal")
+            ok = ejecutar_proceso()
+            if ok:
+                self.log("✅ Procesamiento completado correctamente.", "normal")
+            else:
+                self.log("❌ Hubo un error durante el procesamiento.", "danger")
+        except Exception as e:
+            self.log(f"❌ Error: {e}", "danger")
 
     def mostrar_constantes(self):
+        self.constantes_viewer.delete("1.0", "end")
+        try:
+            db = TinyDB("config_db.json")
+            data = db.all()[0] if db.all() else {}
+            pretty_json = json.dumps(data, indent=4, ensure_ascii=False)
+            self.constantes_viewer.insert("1.0", pretty_json)
+        except Exception as e:
+            self.constantes_viewer.insert("1.0", f"Error al cargar constantes: {e}")
 
-        self.constantes_text.delete("1.0", tk.END)
-
-        # Obtener atributos públicos del config que no son métodos ni módulos
-        for attr in dir(config):
-            if attr.startswith("_") or callable(getattr(config, attr)) or isinstance(getattr(config, attr), ModuleType):
-                continue
-
-            valor = getattr(config, attr)
-            if isinstance(valor, (list, dict, set)):
-                self.constantes_text.insert(tk.END, f"{attr}: {len(valor)} elementos\n")
-            else:
-                self.constantes_text.insert(tk.END, f"{attr}: {valor}\n")
-
-            # Actualiza paths visibles en campos IMM/IFS
-            if attr == "imm_file_path":
-                self.imm_path.set(str(valor))
-            elif attr == "ifs_file_path":
-                self.ifs_path.set(str(valor))
+    def guardar_constantes(self):
+        try:
+            texto = self.constantes_viewer.get("1.0", "end").strip()
+            datos = json.loads(texto)
+            db = TinyDB("config_db.json")
+            db.truncate()
+            db.insert(datos)
+            self.log("✔️ Constantes guardadas correctamente.", "normal")
+        except Exception as e:
+            self.log(f"❌ Error al guardar constantes: {e}", "danger")
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = XMLSelectorApp(root)
-    root.mainloop()
+    app = App()
+    app.mainloop()

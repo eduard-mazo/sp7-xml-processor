@@ -3,12 +3,15 @@ import pandas as pd
 from config import config
 from parser import XMLParser
 from helpers import cargar_base_datos_por_blocktype, safe_update_original, medir_tiempo
+from ui_logger import logger
 
 
 @medir_tiempo
 def construir_excel_desde_xml():
 
-    print(f"📥 Procesando:\n - IMM: {config.imm_file_path}\n - IFS: {config.ifs_file_path}")
+    print(f"📥 Procesando: ")
+    print(f"- IMM: {config.imm_file_path}")
+    print(f"- IFS: {config.ifs_file_path}")
 
     index_blocktype = cargar_base_datos_por_blocktype(config.blocktype_json)
     parser = XMLParser(index_blocktype)
